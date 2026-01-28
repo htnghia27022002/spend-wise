@@ -15,6 +15,7 @@ final class Notification extends Model
         'user_id',
         'type',
         'channel',
+        'template_id',
         'title',
         'message',
         'data',
@@ -24,6 +25,11 @@ final class Notification extends Model
         'read_at',
         'sent',
         'sent_at',
+        'status',
+        'retry_count',
+        'max_retries',
+        'last_error',
+        'next_retry_at',
     ];
 
     protected $casts = [
@@ -31,6 +37,9 @@ final class Notification extends Model
         'read_at' => 'datetime',
         'sent_at' => 'datetime',
         'sent' => 'boolean',
+        'next_retry_at' => 'datetime',
+        'retry_count' => 'integer',
+        'max_retries' => 'integer',
     ];
 
     public function user(): BelongsTo
@@ -51,5 +60,50 @@ final class Notification extends Model
     public function markAsRead(): void
     {
         $this->update(['read_at' => now()]);
+    }
+
+    public function template(): BelongsTo
+    {
+        return $this->belongsTo(NotificationTemplate::class, 'template_id');
+    }
+
+    public function canRetry(): bool
+    {
+        return $this->status === 'failed' && $this->retry_count < $this->max_retries;
+    }
+
+    public function markAsSending(): void
+    {
+        $this->update(['status' => 'sending']);
+    }
+
+    public function markAsSent(): void
+    {
+        $this->update([
+            'status' => 'sent',
+            'sent' => true,
+            'sent_at' => now(),
+        ]);
+    }
+
+    public function markAsFailed(string $error): void
+    {
+        $this->update([
+            'status' => 'failed',
+            'last_error' => $error,
+            'retry_count' => $this->retry_count + 1,
+            'next_retry_at' => $this->calculateNextRetry(),
+        ]);
+    }
+
+    private function calculateNextRetry(): ?\DateTimeInterface
+    {
+        if ($this->retry_count >= $this->max_retries) {
+            return null;
+        }
+
+        // Exponential backoff: 5 min, 15 min, 30 min
+        $minutes = [5, 15, 30][$this->retry_count] ?? 60;
+        return now()->addMinutes($minutes);
     }
 }
