@@ -9,34 +9,36 @@ This directory contains reusable components for displaying data in different vie
 A flexible grid-based card layout component with responsive column support.
 
 **Props:**
+
 - `items`: Array of data items (must have an `id` field)
 - `renderItem`: Function that renders each item
 - `columns`: Optional object for responsive columns
-  - `default`: Number of columns for mobile (default: 1)
-  - `sm`: Number of columns for small screens
-  - `md`: Number of columns for medium screens (default: 2)
-  - `lg`: Number of columns for large screens (default: 4)
-  - `xl`: Number of columns for extra large screens
+    - `default`: Number of columns for mobile (default: 1)
+    - `sm`: Number of columns for small screens
+    - `md`: Number of columns for medium screens (default: 2)
+    - `lg`: Number of columns for large screens (default: 4)
+    - `xl`: Number of columns for extra large screens
 - `gap`: Optional spacing between items (2, 3, 4, 6, or 8)
 - `className`: Optional additional CSS classes
 
 **Example:**
+
 ```tsx
 import { CardView } from '@/components/data-view';
 
 <CardView
-  items={wallets}
-  columns={{ default: 1, md: 2, lg: 4 }}
-  gap={4}
-  renderItem={(wallet) => (
-    <Card>
-      <CardContent>
-        <h3>{wallet.name}</h3>
-        <p>{wallet.balance}</p>
-      </CardContent>
-    </Card>
-  )}
-/>
+    items={wallets}
+    columns={{ default: 1, md: 2, lg: 4 }}
+    gap={4}
+    renderItem={(wallet) => (
+        <Card>
+            <CardContent>
+                <h3>{wallet.name}</h3>
+                <p>{wallet.balance}</p>
+            </CardContent>
+        </Card>
+    )}
+/>;
 ```
 
 ### ListView
@@ -44,27 +46,29 @@ import { CardView } from '@/components/data-view';
 A vertical stacked list layout component.
 
 **Props:**
+
 - `items`: Array of data items (must have an `id` field)
 - `renderItem`: Function that renders each item
 - `spacing`: Optional vertical spacing between items (2, 3, 4, 6, or 8)
 - `className`: Optional additional CSS classes
 
 **Example:**
+
 ```tsx
 import { ListView } from '@/components/data-view';
 
 <ListView
-  items={transactions}
-  spacing={4}
-  renderItem={(transaction) => (
-    <Card>
-      <CardContent>
-        <h3>{transaction.description}</h3>
-        <p>{transaction.amount}</p>
-      </CardContent>
-    </Card>
-  )}
-/>
+    items={transactions}
+    spacing={4}
+    renderItem={(transaction) => (
+        <Card>
+            <CardContent>
+                <h3>{transaction.description}</h3>
+                <p>{transaction.amount}</p>
+            </CardContent>
+        </Card>
+    )}
+/>;
 ```
 
 ### ViewToggle
@@ -72,24 +76,26 @@ import { ListView } from '@/components/data-view';
 A toggle component for switching between list and card view modes.
 
 **Props:**
+
 - `view`: Current view mode ('list' | 'card')
 - `onViewChange`: Function called when view mode changes
 - `className`: Optional additional CSS classes
 
 **Example:**
+
 ```tsx
 import { ViewToggle, type ViewMode } from '@/components/data-view';
 import { useState } from 'react';
 
 function MyPage() {
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+    const [viewMode, setViewMode] = useState<ViewMode>('list');
 
-  return (
-    <div>
-      <ViewToggle view={viewMode} onViewChange={setViewMode} />
-      {/* Render content based on viewMode */}
-    </div>
-  );
+    return (
+        <div>
+            <ViewToggle view={viewMode} onViewChange={setViewMode} />
+            {/* Render content based on viewMode */}
+        </div>
+    );
 }
 ```
 
@@ -103,71 +109,87 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CardView, ListView, ViewToggle, type ViewMode } from '@/components/data-view';
+import {
+    CardView,
+    ListView,
+    ViewToggle,
+    type ViewMode,
+} from '@/components/data-view';
 import AppLayout from '@/layouts/app-layout';
 
 interface Item {
-  id: number;
-  name: string;
-  description: string;
+    id: number;
+    name: string;
+    description: string;
 }
 
 interface Props {
-  items: Item[];
+    items: Item[];
 }
 
 export default function Index({ items }: Props) {
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+    const [viewMode, setViewMode] = useState<ViewMode>('list');
 
-  return (
-    <AppLayout>
-      <Head title="Items" />
+    return (
+        <AppLayout>
+            <Head title="Items" />
 
-      <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Items</h1>
-          <div className="flex gap-2">
-            <ViewToggle view={viewMode} onViewChange={setViewMode} />
-            <Button asChild>
-              <Link href="/items/create">
-                <Plus className="mr-2 h-4 w-4" />
-                New Item
-              </Link>
-            </Button>
-          </div>
-        </div>
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                    <h1 className="text-3xl font-bold">Items</h1>
+                    <div className="flex gap-2">
+                        <ViewToggle
+                            view={viewMode}
+                            onViewChange={setViewMode}
+                        />
+                        <Button asChild>
+                            <Link href="/items/create">
+                                <Plus className="mr-2 h-4 w-4" />
+                                New Item
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
 
-        {viewMode === 'card' ? (
-          <CardView
-            items={items}
-            columns={{ default: 1, md: 2, lg: 3 }}
-            renderItem={(item) => (
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold">{item.name}</h3>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
-                </CardContent>
-              </Card>
-            )}
-          />
-        ) : (
-          <ListView
-            items={items}
-            renderItem={(item) => (
-              <Card>
-                <CardContent className="flex items-center justify-between p-6">
-                  <div>
-                    <h3 className="font-semibold">{item.name}</h3>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          />
-        )}
-      </div>
-    </AppLayout>
-  );
+                {viewMode === 'card' ? (
+                    <CardView
+                        items={items}
+                        columns={{ default: 1, md: 2, lg: 3 }}
+                        renderItem={(item) => (
+                            <Card>
+                                <CardContent className="p-6">
+                                    <h3 className="font-semibold">
+                                        {item.name}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        {item.description}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        )}
+                    />
+                ) : (
+                    <ListView
+                        items={items}
+                        renderItem={(item) => (
+                            <Card>
+                                <CardContent className="flex items-center justify-between p-6">
+                                    <div>
+                                        <h3 className="font-semibold">
+                                            {item.name}
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            {item.description}
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+                    />
+                )}
+            </div>
+        </AppLayout>
+    );
 }
 ```
 
@@ -178,11 +200,11 @@ All components are fully typed with TypeScript generics, ensuring type safety wh
 ```tsx
 // Item type will be inferred from your items array
 <CardView<MyItemType>
-  items={myItems}
-  renderItem={(item) => {
-    // 'item' is automatically typed as MyItemType
-    return <div>{item.name}</div>;
-  }}
+    items={myItems}
+    renderItem={(item) => {
+        // 'item' is automatically typed as MyItemType
+        return <div>{item.name}</div>;
+    }}
 />
 ```
 
@@ -252,11 +274,11 @@ Add custom classes for additional styling:
 
 ```tsx
 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-  {items.map((item) => (
-    <Card key={item.id}>
-      <CardContent>{item.name}</CardContent>
-    </Card>
-  ))}
+    {items.map((item) => (
+        <Card key={item.id}>
+            <CardContent>{item.name}</CardContent>
+        </Card>
+    ))}
 </div>
 ```
 
@@ -264,13 +286,13 @@ Add custom classes for additional styling:
 
 ```tsx
 <CardView
-  items={items}
-  columns={{ default: 1, md: 2, lg: 4 }}
-  renderItem={(item) => (
-    <Card>
-      <CardContent>{item.name}</CardContent>
-    </Card>
-  )}
+    items={items}
+    columns={{ default: 1, md: 2, lg: 4 }}
+    renderItem={(item) => (
+        <Card>
+            <CardContent>{item.name}</CardContent>
+        </Card>
+    )}
 />
 ```
 

@@ -1,9 +1,9 @@
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { Bell, Check } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import type { Notification } from '@/types/finance';
 
 interface NotificationItemProps {
