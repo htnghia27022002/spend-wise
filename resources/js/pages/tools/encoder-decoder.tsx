@@ -1,6 +1,6 @@
 import { Head, router } from '@inertiajs/react';
-import { EncoderDecoderForm } from '@/components/tools/encoder-decoder-form';
 import Heading from '@/components/heading';
+import { EncoderDecoderForm } from '@/components/tools/encoder-decoder-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';

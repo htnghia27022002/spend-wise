@@ -1,12 +1,12 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import AppLayout from '@/layouts/app-layout';
+import { RefreshCw } from 'lucide-react';
 import { NotificationItem } from '@/components/Notification';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type { Notification, PaginatedData } from '@/types/finance';
-import { RefreshCw } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Notifications', href: '/notifications' },
