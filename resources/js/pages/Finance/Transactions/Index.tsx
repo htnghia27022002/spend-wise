@@ -1,8 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';import AppLayout from '@/layouts/app-layout';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+import { CardView, ListView, ViewToggle, type ViewMode } from '@/components/data-view';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Finance', href: '/finance/dashboard' },
@@ -41,6 +44,8 @@ interface Props {
 }
 
 export default function Index({ transactions, wallets, filters }: Props) {
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -56,31 +61,55 @@ export default function Index({ transactions, wallets, filters }: Props) {
       <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Transactions</h1>
-          <Button asChild>
-            <Link href="/transactions/create">
-              <Plus className="mr-2 h-4 w-4" />
-              New Transaction
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <ViewToggle view={viewMode} onViewChange={setViewMode} />
+            <Button asChild>
+              <Link href="/transactions/create">
+                <Plus className="mr-2 h-4 w-4" />
+                New Transaction
+              </Link>
+            </Button>
+          </div>
         </div>
 
-        <div className="space-y-4">
-          {transactions.data.map((tx) => (
-            <Card key={tx.id}>
-              <CardContent className="flex items-center justify-between p-6">
-                <div>
+        {viewMode === 'card' ? (
+          <CardView
+            items={transactions.data}
+            columns={{ default: 1, md: 2, lg: 3 }}
+            renderItem={(tx) => (
+              <Card>
+                <CardContent className="space-y-2 p-6">
                   <h3 className="font-semibold">{tx.description}</h3>
                   <p className="text-xs text-muted-foreground">
                     {tx.category.name} • {new Date(tx.transaction_date).toLocaleDateString('vi-VN')}
                   </p>
-                </div>
-                <p className={`text-lg font-bold ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                  {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  <p className={`text-lg font-bold ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                    {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          />
+        ) : (
+          <ListView
+            items={transactions.data}
+            renderItem={(tx) => (
+              <Card>
+                <CardContent className="flex items-center justify-between p-6">
+                  <div>
+                    <h3 className="font-semibold">{tx.description}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {tx.category.name} • {new Date(tx.transaction_date).toLocaleDateString('vi-VN')}
+                    </p>
+                  </div>
+                  <p className={`text-lg font-bold ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                    {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          />
+        )}
       </div>
     </AppLayout>
   );
