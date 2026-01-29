@@ -22,12 +22,17 @@ final class NotificationController extends Controller
     public function index(Request $request): Response
     {
         $perPage = $request->input('per_page', 20);
-        $notifications = $this->repository->getPaginatedByUser(auth()->id(), $perPage);
+        $status = $request->input('status');
+        
+        $notifications = $this->repository->getPaginatedByUser(auth()->id(), $perPage, $status);
         $unreadCount = $this->repository->countUnreadByUser(auth()->id());
 
         return Inertia::render('Notifications/Index', [
             'notifications' => $notifications,
             'unreadCount' => $unreadCount,
+            'filters' => [
+                'status' => $status,
+            ],
         ]);
     }
 
@@ -97,6 +102,35 @@ final class NotificationController extends Controller
         return response()->json([
             'settings' => $settings,
             'availableTypes' => $this->service->getAvailableNotificationTypes(),
+        ]);
+    }
+
+    public function retry(int $id): JsonResponse
+    {
+        $notification = \App\Models\Notification\Notification::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->first();
+
+        if (!$notification) {
+            return response()->json([
+                'message' => 'Notification not found',
+            ], 404);
+        }
+
+        if (!$notification->canRetry()) {
+            return response()->json([
+                'message' => 'Notification cannot be retried',
+            ], 400);
+        }
+
+        // Reset retry and queue for resend
+        $notification->update([
+            'status' => 'pending',
+            'next_retry_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Notification queued for retry',
         ]);
     }
 }

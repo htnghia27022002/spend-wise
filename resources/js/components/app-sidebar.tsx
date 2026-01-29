@@ -66,8 +66,25 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Notifications',
-        href: '/notifications',
         icon: Bell,
+        items: [
+            {
+                title: 'All Notifications',
+                href: '/notifications',
+            },
+            {
+                title: 'Channel Settings',
+                href: '/notifications/channels',
+            },
+            {
+                title: 'Templates',
+                href: '/notifications/templates',
+            },
+            {
+                title: 'User Settings',
+                href: '/notifications/settings',
+            },
+        ],
     },
     {
         title: 'Tools',

@@ -114,10 +114,21 @@ export interface Notification {
   user_id: number;
   notifiable_type: string;
   notifiable_id: number;
-  type: 'subscription_due' | 'subscription_overdue' | 'installment_due' | 'installment_overdue';
+  type: string;
+  channel?: string;
   title: string;
   message: string;
+  data?: Record<string, any>;
+  action_url?: string;
   read_at?: string;
+  sent?: boolean;
+  sent_at?: string;
+  status?: 'pending' | 'sending' | 'sent' | 'failed';
+  retry_count?: number;
+  max_retries?: number;
+  last_error?: string;
+  next_retry_at?: string;
+  template_id?: number;
   created_at: string;
   updated_at: string;
   notifiable?: Subscription | Installment;
@@ -126,12 +137,11 @@ export interface Notification {
 export interface NotificationSetting {
   id: number;
   user_id: number;
-  subscription_due_enabled: boolean;
-  subscription_overdue_enabled: boolean;
-  installment_due_enabled: boolean;
-  installment_overdue_enabled: boolean;
-  days_before_due: number;
-  notification_method: 'push' | 'email' | 'inapp' | 'all';
+  preferences: Record<string, boolean>;
+  enabled_channels: string[];
+  quiet_hours_start?: string;
+  quiet_hours_end?: string;
+  timezone?: string;
   created_at: string;
   updated_at: string;
 }
