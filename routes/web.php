@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Calendar\CalendarController;
 use App\Http\Controllers\Finance\CategoryController;
 use App\Http\Controllers\Finance\DashboardController;
 use App\Http\Controllers\Finance\InstallmentController;
@@ -90,6 +91,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('installments/{id}/pause', [InstallmentController::class, 'pause'])->name('installments.pause');
     Route::post('installments/{id}/resume', [InstallmentController::class, 'resume'])->name('installments.resume');
     Route::post('installments/{id}/mark-payment-paid', [InstallmentController::class, 'markPaymentPaid'])->name('installments.markPaymentPaid');
+
+    // Calendar
+    Route::resource('calendar', CalendarController::class)->names([
+        'index' => 'calendar.index',
+        'create' => 'calendar.create',
+        'store' => 'calendar.store',
+        'show' => 'calendar.show',
+        'edit' => 'calendar.edit',
+        'update' => 'calendar.update',
+        'destroy' => 'calendar.destroy',
+    ]);
+    Route::get('calendar/overview', [CalendarController::class, 'overview'])->name('calendar.overview');
 
     // Notifications - moved to independent Notification module
     Route::get('notifications', [\App\Http\Controllers\Notification\NotificationController::class, 'index'])->name('notifications.index');

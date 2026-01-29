@@ -10,7 +10,6 @@ use App\Repositories\Finance\CategoryRepository;
 use App\Repositories\Finance\TransactionRepository;
 use App\Repositories\Finance\WalletRepository;
 use Carbon\Carbon;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -69,7 +68,7 @@ final class TransactionController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'wallet_id' => 'required|integer|exists:wallets,id',
@@ -88,7 +87,7 @@ final class TransactionController extends Controller
 
         $transaction = $this->service->create(auth()->id(), $validated);
 
-        return response()->json($transaction, 201);
+        return redirect()->route('transactions.index');
     }
 
     public function edit(int $id): Response

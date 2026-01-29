@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Notification;
 use App\Http\Controllers\Controller;
 use App\Repositories\Notification\ChannelSettingRepository;
 use App\Services\Notification\ChannelSettingService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -28,7 +27,7 @@ final class ChannelSettingController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'channel' => 'required|string|in:email,sms,push',
@@ -40,10 +39,7 @@ final class ChannelSettingController extends Controller
 
         $setting = $this->service->createOrUpdate($validated['channel'], $validated);
 
-        return response()->json([
-            'message' => 'Channel setting saved successfully',
-            'setting' => $setting,
-        ], 201);
+        return redirect()->route('notification.channel-settings.index');
     }
 
     public function update(Request $request, string $channel): JsonResponse

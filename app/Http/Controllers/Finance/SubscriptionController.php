@@ -9,8 +9,8 @@ use App\Http\Controllers\Controller;
 use App\Repositories\Finance\CategoryRepository;
 use App\Repositories\Finance\SubscriptionRepository;
 use App\Repositories\Finance\WalletRepository;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -49,7 +49,7 @@ final class SubscriptionController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -64,12 +64,12 @@ final class SubscriptionController extends Controller
         ]);
 
         // Verify authorization
-        $this->authorizeWallet($validated['wallet_id']);
-        $this->authorizeCategory($validated['category_id']);
+        $this->authorizeWallet((int) $validated['wallet_id']);
+        $this->authorizeCategory((int) $validated['category_id']);
 
         $subscription = $this->service->create(auth()->id(), $validated);
 
-        return response()->json($subscription, 201);
+        return redirect()->route('subscriptions.index');
     }
 
     public function edit(int $id): Response
@@ -112,8 +112,8 @@ final class SubscriptionController extends Controller
         ]);
 
         // Verify authorization
-        $this->authorizeWallet($validated['wallet_id']);
-        $this->authorizeCategory($validated['category_id']);
+        $this->authorizeWallet((int) $validated['wallet_id']);
+        $this->authorizeCategory((int) $validated['category_id']);
 
         $subscription = $this->service->update($subscription, $validated);
 

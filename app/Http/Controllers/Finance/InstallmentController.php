@@ -10,7 +10,6 @@ use App\Models\Finance\InstallmentPayment;
 use App\Repositories\Finance\CategoryRepository;
 use App\Repositories\Finance\InstallmentRepository;
 use App\Repositories\Finance\WalletRepository;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -50,7 +49,7 @@ final class InstallmentController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -70,7 +69,7 @@ final class InstallmentController extends Controller
 
         $installment = $this->service->create(auth()->id(), $validated);
 
-        return response()->json($installment, 201);
+        return redirect()->route('installments.index');
     }
 
     public function show(int $id): Response

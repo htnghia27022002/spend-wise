@@ -48,7 +48,63 @@ export default function Create({ wallets, categories }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    post('/installments');
+    
+    // Validate required fields
+    if (!data.name) {
+      alert('Vui lòng nhập tên kế hoạch trả góp');
+      return;
+    }
+    
+    if (!data.wallet_id) {
+      alert('Vui lòng chọn ví');
+      return;
+    }
+    
+    if (!data.category_id) {
+      alert('Vui lòng chọn danh mục');
+      return;
+    }
+    
+    if (!data.total_amount || Number(data.total_amount) <= 0) {
+      alert('Vui lòng nhập tổng số tiền hợp lệ');
+      return;
+    }
+    
+    if (!data.total_installments || Number(data.total_installments) < 2) {
+      alert('Số kỳ trả góp phải từ 2 trở lên');
+      return;
+    }
+    
+    if (!data.first_payment_date) {
+      alert('Vui lòng chọn ngày thanh toán đầu tiên');
+      return;
+    }
+    
+    post('/installments', {
+      onError: (errors) => {
+        console.error('Validation errors:', errors);
+        const errorMessages = Object.entries(errors)
+          .map(([field, messages]) => {
+            const fieldName = {
+              name: 'Tên kế hoạch',
+              wallet_id: 'Ví',
+              category_id: 'Danh mục',
+              total_amount: 'Tổng số tiền',
+              total_installments: 'Số kỳ trả góp',
+              first_payment_date: 'Ngày thanh toán đầu tiên',
+              start_date: 'Ngày bắt đầu',
+              amount_per_installment: 'Số tiền mỗi kỳ',
+              payment_frequency: 'Tần suất thanh toán',
+            }[field] || field;
+            const msg = Array.isArray(messages) ? messages.join(', ') : messages;
+            return `${fieldName}: ${msg}`;
+          })
+          .join('\n');
+        alert('Có lỗi xảy ra:\n\n' + errorMessages);
+      },
+      preserveState: true,
+      preserveScroll: true,
+    });
   };
 
   return (
@@ -62,6 +118,34 @@ export default function Create({ wallets, categories }: Props) {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Global Error Alert */}
+              {Object.keys(errors).length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-red-800 mb-2">⚠ Có lỗi xảy ra:</h4>
+                  <ul className="list-disc list-inside space-y-1">
+                    {Object.entries(errors).map(([field, messages]) => {
+                      const fieldName = {
+                        name: 'Tên kế hoạch',
+                        wallet_id: 'Ví',
+                        category_id: 'Danh mục',
+                        total_amount: 'Tổng số tiền',
+                        total_installments: 'Số kỳ trả góp',
+                        first_payment_date: 'Ngày thanh toán đầu tiên',
+                        start_date: 'Ngày bắt đầu',
+                        amount_per_installment: 'Số tiền mỗi kỳ',
+                        payment_frequency: 'Tần suất thanh toán',
+                      }[field] || field;
+                      const msg = Array.isArray(messages) ? messages.join(', ') : messages;
+                      return (
+                        <li key={field} className="text-xs text-red-700">
+                          <strong>{fieldName}:</strong> {msg}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="name">Installment Name</Label>
                 <Input
@@ -70,8 +154,13 @@ export default function Create({ wallets, categories }: Props) {
                   onChange={(e) => setData('name', e.target.value)}
                   placeholder="e.g., iPhone 15 Pro"
                   required
+                  className={errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                 />
-                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+                {errors.name && (
+                  <p className="text-sm text-red-600 font-medium flex items-center gap-1">
+                    <span>⚠</span> {errors.name}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -119,8 +208,13 @@ export default function Create({ wallets, categories }: Props) {
                     onChange={(e) => setData('total_amount', e.target.value)}
                     placeholder="0.00"
                     required
+                    className={errors.total_amount ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                   />
-                  {errors.total_amount && <p className="text-sm text-red-500">{errors.total_amount}</p>}
+                  {errors.total_amount && (
+                    <p className="text-sm text-red-600 font-medium flex items-center gap-1">
+                      <span>⚠</span> {errors.total_amount}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -133,8 +227,13 @@ export default function Create({ wallets, categories }: Props) {
                     onChange={(e) => setData('total_installments', e.target.value)}
                     placeholder="12"
                     required
+                    className={errors.total_installments ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                   />
-                  {errors.total_installments && <p className="text-sm text-red-500">{errors.total_installments}</p>}
+                  {errors.total_installments && (
+                    <p className="text-sm text-red-600 font-medium flex items-center gap-1">
+                      <span>⚠</span> {errors.total_installments}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -147,8 +246,13 @@ export default function Create({ wallets, categories }: Props) {
                     value={data.first_payment_date}
                     onChange={(e) => setData('first_payment_date', e.target.value)}
                     required
+                    className={errors.first_payment_date || errors.start_date ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
                   />
-                  {errors.first_payment_date && <p className="text-sm text-red-500">{errors.first_payment_date}</p>}
+                  {(errors.first_payment_date || errors.start_date) && (
+                    <p className="text-sm text-red-600 font-medium flex items-center gap-1">
+                      <span>⚠</span> {errors.first_payment_date || errors.start_date}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">

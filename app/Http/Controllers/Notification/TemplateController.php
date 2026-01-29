@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Repositories\Notification\TemplateRepository;
 use App\Services\Notification\TemplateService;
 use App\Services\Notification\NotificationTypeRegistry;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -38,7 +37,7 @@ final class TemplateController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -53,10 +52,7 @@ final class TemplateController extends Controller
 
         $template = $this->service->create($validated);
 
-        return response()->json([
-            'message' => 'Template created successfully',
-            'template' => $template,
-        ], 201);
+        return redirect()->route('notification.templates.index');
     }
 
     public function show(int $id): Response

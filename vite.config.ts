@@ -21,6 +21,15 @@ export default defineConfig({
             formVariants: true,
         }),
     ],
+    server: {
+        port: 5174,
+        host: '0.0.0.0',
+        strictPort: true,
+        hmr: {
+            host: '127.0.0.1',
+            port: 5174,
+        },
+    },
     esbuild: {
         jsx: 'automatic',
     },

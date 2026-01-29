@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Finance;
 use App\Contracts\Finance\CategoryServiceInterface;
 use App\Http\Controllers\Controller;
 use App\Repositories\Finance\CategoryRepository;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -37,7 +36,7 @@ final class CategoryController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -53,7 +52,7 @@ final class CategoryController extends Controller
 
         $category = $this->service->create(auth()->id(), $validated);
 
-        return response()->json($category, 201);
+        return redirect()->route('categories.index');
     }
 
     public function edit(int $id): Response

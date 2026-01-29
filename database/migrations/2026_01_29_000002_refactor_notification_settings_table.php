@@ -13,27 +13,46 @@ return new class extends Migration
     {
         Schema::table('notification_settings', function (Blueprint $table) {
             // Remove Finance-specific columns
-            $table->dropColumn([
+            if (Schema::hasColumns('notification_settings', [
                 'subscription_due_enabled',
                 'subscription_overdue_enabled',
                 'installment_due_enabled',
                 'installment_overdue_enabled',
                 'days_before_due',
                 'notification_method',
-            ]);
+            ])) {
+                $table->dropColumn([
+                    'subscription_due_enabled',
+                    'subscription_overdue_enabled',
+                    'installment_due_enabled',
+                    'installment_overdue_enabled',
+                    'days_before_due',
+                    'notification_method',
+                ]);
+            }
             
             // Add flexible notification preferences
-            $table->json('preferences')->nullable()->comment('JSON object for all notification type preferences');
+            if (!Schema::hasColumn('notification_settings', 'preferences')) {
+                $table->json('preferences')->nullable()->comment('JSON object for all notification type preferences');
+            }
             
             // Add global notification channels
-            $table->json('enabled_channels')->default('["database"]')->comment('Array of enabled channels: database, email, sms, push');
+            if (!Schema::hasColumn('notification_settings', 'enabled_channels')) {
+                $table->json('enabled_channels')->nullable()->comment('Array of enabled channels: database, email, sms, push');
+            }
             
             // Add quiet hours
-            $table->time('quiet_hours_start')->nullable();
-            $table->time('quiet_hours_end')->nullable();
+            if (!Schema::hasColumn('notification_settings', 'quiet_hours_start')) {
+                $table->time('quiet_hours_start')->nullable();
+            }
+            if (!Schema::hasColumn('notification_settings', 'quiet_hours_end')) {
+                $table->time('quiet_hours_end')->nullable();
+            }
             
             // Add timezone
-            $table->string('timezone', 50)->default('UTC');
+            if (!Schema::hasColumn('notification_settings', 'timezone')) {
+                $table->string('timezone', 50)->default('UTC');
+            }
         });
     }
 

@@ -480,7 +480,12 @@ Register shared utilities and hooks in service providers or initialization:
 
 ### Docker Container Setup
 
-This project runs inside a Docker container (FrankenPHP). Always execute commands within the container:
+This project runs inside a Docker container (FrankenPHP) at `/app/spend-wise`. Always execute commands within the container:
+
+**Container Details:**
+- **Container Name**: `frankenphp`
+- **Working Directory**: `/app/spend-wise`
+- **Source Host Path**: `/home/htnghia/Sources/spend-wise`
 
 **Running Commands:**
 ```bash

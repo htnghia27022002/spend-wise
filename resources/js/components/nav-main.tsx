@@ -30,8 +30,11 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                     const hasChildren = item.items && item.items.length > 0;
 
                     if (hasChildren) {
+                        // Only open parent menu if any child item is currently active
+                        const hasActiveChild = item.items?.some((subItem) => isCurrentUrl(subItem.href!));
+                        
                         return (
-                            <Collapsible key={item.title} defaultOpen className="group/collapsible">
+                            <Collapsible key={item.title} defaultOpen={hasActiveChild} className="group/collapsible">
                                 <SidebarMenuItem>
                                     <CollapsibleTrigger asChild>
                                         <SidebarMenuButton

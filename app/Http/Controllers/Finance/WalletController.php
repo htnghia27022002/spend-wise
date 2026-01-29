@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Finance;
 use App\Contracts\Finance\WalletServiceInterface;
 use App\Http\Controllers\Controller;
 use App\Repositories\Finance\WalletRepository;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -33,7 +32,7 @@ final class WalletController extends Controller
         return Inertia::render('Finance/Wallets/Create');
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -45,7 +44,7 @@ final class WalletController extends Controller
 
         $wallet = $this->service->create(auth()->id(), $validated);
 
-        return response()->json($wallet, 201);
+        return redirect()->route('wallets.index');
     }
 
     public function show(int $id): Response
