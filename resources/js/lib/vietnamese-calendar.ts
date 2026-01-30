@@ -3,7 +3,7 @@
  * Provides lunar calendar conversion and Vietnamese holidays
  */
 
-import LunarCalendar from 'lunar-calendar';
+import { Solar, Lunar } from 'lunar-typescript';
 
 export interface LunarDate {
   day: number;
@@ -20,30 +20,30 @@ export interface VietnameseHoliday {
   isNationalHoliday: boolean;
 }
 
-// Vietnamese holidays (solar calendar)
+// Vietnamese holidays (solar calendar) - format: DD-MM
 const solarHolidays: Record<string, string> = {
   '1-1': 'Năm mới dương lịch',
-  '2-9': 'Ngày Kỷ niệm Cách mạng Tháng Hai',
-  '4-30': 'Ngày Giải phóng / Ngày Thống nhất',
-  '5-1': 'Ngày Quốc tế Lao động',
-  '9-2': 'Ngày Quốc khánh',
-  '9-3': 'Ngày Quốc khánh (Lễ)',
-  '12-20': 'Ngày Thầy thuốc Việt Nam',
+  '9-2': 'Ngày Kỷ niệm Cách mạng Tháng Hai',
+  '30-4': 'Ngày Giải phóng / Ngày Thống nhất',
+  '1-5': 'Ngày Quốc tế Lao động',
+  '2-9': 'Ngày Quốc khánh',
+  '3-9': 'Ngày Quốc khánh (Lễ)',
+  '20-12': 'Ngày Thầy thuốc Việt Nam',
   '10-10': 'Ngày Phụ nữ Việt Nam',
-  '1-8': 'Ngày Phụ nữ Quốc tế',
-  '6-1': 'Ngày Thiếu nhi Quốc tế',
+  '8-3': 'Ngày Phụ nữ Quốc tế',
+  '1-6': 'Ngày Thiếu nhi Quốc tế',
 };
 
-// Vietnamese lunar holidays
+// Vietnamese lunar holidays - format: DD-MM (lunar)
 const lunarHolidays: Record<string, string> = {
   '1-1': 'Tết Nguyên đán',
-  '1-2': 'Tết Nguyên đán (Mùng 2)',
-  '1-3': 'Tết Nguyên đán (Mùng 3)',
-  '1-15': 'Tết Nguyên tiêu (Lễ Hoa đăng)',
+  '2-1': 'Tết Nguyên đán (Mùng 2)',
+  '3-1': 'Tết Nguyên đán (Mùng 3)',
+  '15-1': 'Tết Nguyên tiêu (Lễ Hoa đăng)',
   '5-5': 'Tết Đoan ngộ',
-  '8-15': 'Tết Trung Thu',
-  '12-23': 'Lễ Ông Táo',
-  '12-30': 'Tết Cuối năm',
+  '15-8': 'Tết Trung Thu',
+  '23-12': 'Lễ Ông Táo',
+  '30-12': 'Tết Cuối năm',
 };
 
 /**
@@ -51,29 +51,14 @@ const lunarHolidays: Record<string, string> = {
  */
 export function solarToLunar(date: Date): LunarDate {
   try {
-    const solar = {
-      year: date.getFullYear(),
-      month: date.getMonth() + 1,
-      day: date.getDate(),
-    };
-    
-    const lunar = (LunarCalendar as any).solarToLunar(solar);
-    
-    if (!lunar || typeof lunar !== 'object') {
-      // Fallback to a basic calculation
-      return {
-        day: date.getDate(),
-        month: date.getMonth() + 1,
-        year: date.getFullYear(),
-        leap: false,
-      };
-    }
+    const solar = Solar.fromDate(date);
+    const lunar = solar.getLunar();
     
     return {
-      day: lunar.day || date.getDate(),
-      month: lunar.month || date.getMonth() + 1,
-      year: lunar.year || date.getFullYear(),
-      leap: lunar.isleap || false,
+      day: lunar.getDay(),
+      month: Math.abs(lunar.getMonth()), // Tháng âm có thể âm nếu là tháng nhuận
+      year: lunar.getYear(),
+      leap: lunar.getMonth() < 0, // Tháng âm có nghĩa là tháng nhuận
     };
   } catch (error) {
     console.warn('Lunar calendar conversion failed:', error);
@@ -91,18 +76,12 @@ export function solarToLunar(date: Date): LunarDate {
  */
 export function lunarToSolar(lunarDate: LunarDate): Date {
   try {
-    const result = (LunarCalendar as any).lunarToSolar({
-      year: lunarDate.year,
-      month: lunarDate.month,
-      day: lunarDate.day,
-      isleap: lunarDate.leap,
-    });
+    // Nếu là tháng nhuận, dùng số âm cho month
+    const month = lunarDate.leap ? -lunarDate.month : lunarDate.month;
+    const lunar = Lunar.fromYmd(lunarDate.year, month, lunarDate.day);
+    const solar = lunar.getSolar();
     
-    if (!result || typeof result !== 'object') {
-      return new Date(lunarDate.year, lunarDate.month - 1, lunarDate.day);
-    }
-    
-    return new Date(result.year, (result.month || 1) - 1, result.day || 1);
+    return new Date(solar.getYear(), solar.getMonth() - 1, solar.getDay());
   } catch (error) {
     console.warn('Lunar to solar conversion failed:', error);
     return new Date(lunarDate.year, lunarDate.month - 1, lunarDate.day);

@@ -155,7 +155,7 @@ export default function Index({ events, month: initialMonth }: Props) {
     <AppLayout>
       <Head title="Lịch" />
 
-      <main className="h-screen flex flex-col bg-white">
+      <main className="flex flex-col bg-white">
         {/* Header */}
         <header className="flex items-center justify-between gap-2 md:gap-4 px-3 md:px-6 py-3 border-b bg-white">
           <div className="flex items-center gap-2 md:gap-4">
@@ -199,7 +199,7 @@ export default function Index({ events, month: initialMonth }: Props) {
         </header>
 
         {/* Calendar Grid */}
-        <div className="flex-1 overflow-auto px-2 md:px-6 py-2 md:py-4">
+        <div className="flex-1 px-2 md:px-6 py-2 md:py-4">
           <GoogleStyleCalendar
             month={currentMonth}
             events={monthEvents}

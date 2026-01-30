@@ -490,19 +490,19 @@ This project runs inside a Docker container (FrankenPHP) at `/app/spend-wise`. A
 **Running Commands:**
 ```bash
 # PHP/Laravel commands
-docker exec -it frankenphp php artisan [command]
-docker exec -it frankenphp composer [command]
+docker exec -it frankenphp bash -c "cd /app/spend-wise && php artisan [command]"
+docker exec -it frankenphp bash -c "cd /app/spend-wise && composer [command]"
 
 # NPM/Node commands
-docker exec -it frankenphp npm [command]
-docker exec -it frankenphp npm run dev
-docker exec -it frankenphp npm run build
+docker exec -it frankenphp bash -c "cd /app/spend-wise && npm [command]"
+docker exec -it frankenphp bash -c "cd /app/spend-wise && npm run dev"
+docker exec -it frankenphp bash -c "cd /app/spend-wise && npm run build"
 
 # Database migrations
-docker exec -it frankenphp php artisan migrate
+docker exec -it frankenphp bash -c "cd /app/spend-wise && php artisan migrate"
 
 # Cache clearing
-docker exec -it frankenphp php artisan optimize:clear
+docker exec -it frankenphp bash -c "cd /app/spend-wise && php artisan optimize:clear"
 ```
 
 **DO NOT run commands directly on host machine** - always use `docker exec -it frankenphp` prefix.

@@ -37,17 +37,17 @@ final class CalendarController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'start_date' => 'required|date_format:Y-m-d H:i',
-            'end_date' => 'nullable|date_format:Y-m-d H:i|after:start_date',
-            'type' => 'required|string|in:payment_due,subscription_due,installment_due,custom,reminder',
-            'color' => 'required|string|in:red,blue,green,yellow,purple,pink,gray',
-            'is_all_day' => 'boolean',
-            'location' => 'nullable|string|max:255',
-            'reminders' => 'nullable|array',
+            'title'                      => 'required|string|max:255',
+            'description'                => 'nullable|string',
+            'start_date'                 => 'required|date_format:Y-m-d H:i',
+            'end_date'                   => 'nullable|date_format:Y-m-d H:i|after:start_date',
+            'type'                       => 'required|string|in:payment_due,subscription_due,installment_due,custom,reminder',
+            'color'                      => 'required|string|in:red,blue,green,yellow,purple,pink,gray',
+            'is_all_day'                 => 'boolean',
+            'location'                   => 'nullable|string|max:255',
+            'reminders'                  => 'nullable|array',
             'reminders.*.minutes_before' => 'integer|min:5',
-            'reminders.*.reminder_type' => 'string|in:notification,email,sms',
+            'reminders.*.reminder_type'  => 'string|in:notification,email,sms',
         ]);
 
         $reminders = $validated['reminders'] ?? [];

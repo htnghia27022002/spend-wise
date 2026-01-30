@@ -136,7 +136,7 @@ export function GoogleStyleCalendar({
     <div className="space-y-1 md:space-y-2">
       {/* Weekday Headers */}
       <div className="grid grid-cols-7 gap-0 border-b">
-        {['Cn', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].map((day) => (
+        {['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].map((day) => (
           <div key={day} className="text-center font-semibold text-[10px] md:text-sm py-1 md:py-2 text-gray-600">
             {day}
           </div>
