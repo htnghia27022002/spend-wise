@@ -18,7 +18,5 @@ interface CalendarServiceInterface
 
     public function deleteReminder(int $reminderId): bool;
 
-    public function syncPaymentEventsForUser(int $userId): void;
-
     public function getCalendarOverview(int $userId, string $startDate, string $endDate): array;
 }

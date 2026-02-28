@@ -30,39 +30,6 @@ class NotificationServiceProvider extends ServiceProvider
      */
     protected function registerNotificationTypes(): void
     {
-        // Finance Module Notifications
-        NotificationTypeRegistry::register('finance.subscription_due', [
-            'name' => 'Subscription Due',
-            'description' => 'Notification when a subscription payment is coming due',
-            'channels' => ['database', 'email'],
-            'default_enabled' => true,
-            'configurable' => true,
-        ]);
-
-        NotificationTypeRegistry::register('finance.subscription_overdue', [
-            'name' => 'Subscription Overdue',
-            'description' => 'Notification when a subscription payment is overdue',
-            'channels' => ['database', 'email'],
-            'default_enabled' => true,
-            'configurable' => true,
-        ]);
-
-        NotificationTypeRegistry::register('finance.installment_due', [
-            'name' => 'Installment Due',
-            'description' => 'Notification when an installment payment is coming due',
-            'channels' => ['database', 'email'],
-            'default_enabled' => true,
-            'configurable' => true,
-        ]);
-
-        NotificationTypeRegistry::register('finance.installment_overdue', [
-            'name' => 'Installment Overdue',
-            'description' => 'Notification when an installment payment is overdue',
-            'channels' => ['database', 'email'],
-            'default_enabled' => true,
-            'configurable' => true,
-        ]);
-
         // Example: System Notifications (for future use)
         NotificationTypeRegistry::register('system.maintenance', [
             'name' => 'System Maintenance',

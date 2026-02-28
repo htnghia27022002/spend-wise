@@ -4,19 +4,9 @@ namespace App\Providers;
 
 use App\Contracts\Calendar\CalendarRepositoryInterface;
 use App\Contracts\Calendar\CalendarServiceInterface;
-use App\Contracts\Finance\CategoryServiceInterface;
-use App\Contracts\Finance\InstallmentServiceInterface;
-use App\Contracts\Finance\SubscriptionServiceInterface;
-use App\Contracts\Finance\TransactionServiceInterface;
-use App\Contracts\Finance\WalletServiceInterface;
 use App\Contracts\Notification\NotificationServiceInterface;
 use App\Repositories\Calendar\CalendarRepository;
 use App\Services\Calendar\CalendarService;
-use App\Services\Finance\CategoryService;
-use App\Services\Finance\InstallmentService;
-use App\Services\Finance\SubscriptionService;
-use App\Services\Finance\TransactionService;
-use App\Services\Finance\WalletService;
 use App\Services\Notification\NotificationService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -31,12 +21,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Finance Services
-        $this->app->bind(WalletServiceInterface::class, WalletService::class);
-        $this->app->bind(CategoryServiceInterface::class, CategoryService::class);
-        $this->app->bind(TransactionServiceInterface::class, TransactionService::class);
-        $this->app->bind(SubscriptionServiceInterface::class, SubscriptionService::class);
-        $this->app->bind(InstallmentServiceInterface::class, InstallmentService::class);
         $this->app->bind(CalendarRepositoryInterface::class, CalendarRepository::class);
         $this->app->bind(CalendarServiceInterface::class, CalendarService::class);
         $this->app->bind(NotificationServiceInterface::class, NotificationService::class);

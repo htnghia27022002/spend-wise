@@ -15,7 +15,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 
 const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'pink', 'gray'];
-const types = ['custom', 'payment_due', 'subscription_due', 'installment_due', 'reminder'];
+const types = ['custom', 'reminder'];
 const reminderTypes = ['notification', 'email', 'sms'];
 
 interface CalendarEventFormProps {

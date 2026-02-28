@@ -4,13 +4,7 @@ import {
     Folder, 
     LayoutGrid, 
     Wrench,
-    Wallet,
-    Tag,
-    Receipt,
-    Repeat,
-    CreditCard,
     Bell,
-    PieChart,
     Calendar
 } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
@@ -34,36 +28,6 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
-    },
-    {
-        title: 'Finance',
-        icon: PieChart,
-        items: [
-            {
-                title: 'Overview',
-                href: '/finance/dashboard',
-            },
-            {
-                title: 'Wallets',
-                href: '/wallets',
-            },
-            {
-                title: 'Categories',
-                href: '/categories',
-            },
-            {
-                title: 'Transactions',
-                href: '/transactions',
-            },
-            {
-                title: 'Subscriptions',
-                href: '/subscriptions',
-            },
-            {
-                title: 'Installments',
-                href: '/installments',
-            },
-        ],
     },
     {
         title: 'Calendar',

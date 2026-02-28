@@ -4,7 +4,7 @@ import { Bell, Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import type { Notification } from '@/types/finance';
+import type { Notification } from '@/types';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -15,33 +15,25 @@ export function NotificationItem({ notification, onMarkAsRead }: NotificationIte
   const isRead = !!notification.read_at;
 
   const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'subscription_due':
-        return 'bg-blue-500/10 text-blue-500';
-      case 'subscription_overdue':
-        return 'bg-red-500/10 text-red-500';
-      case 'installment_due':
-        return 'bg-yellow-500/10 text-yellow-500';
-      case 'installment_overdue':
-        return 'bg-red-500/10 text-red-500';
-      default:
-        return 'bg-gray-500/10 text-gray-500';
+    // Generic type colors
+    if (type.includes('overdue') || type.includes('error')) {
+      return 'bg-red-500/10 text-red-500';
     }
+    if (type.includes('due') || type.includes('warning')) {
+      return 'bg-yellow-500/10 text-yellow-500';
+    }
+    if (type.includes('success')) {
+      return 'bg-green-500/10 text-green-500';
+    }
+    return 'bg-blue-500/10 text-blue-500';
   };
 
   const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'subscription_due':
-        return 'Subscription Due';
-      case 'subscription_overdue':
-        return 'Subscription Overdue';
-      case 'installment_due':
-        return 'Installment Due';
-      case 'installment_overdue':
-        return 'Installment Overdue';
-      default:
-        return type;
-    }
+    // Convert snake_case to Title Case
+    return type
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
 
   return (
