@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Calendar;
 
+use App\Enums\Calendar\ReminderType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -23,6 +24,7 @@ final class CalendarReminder extends Model
         'is_sent' => 'boolean',
         'is_active' => 'boolean',
         'sent_at' => 'datetime',
+        'reminder_type' => ReminderType::class,
     ];
 
     public function event(): BelongsTo

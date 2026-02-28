@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models\Notification;
 
+use App\Enums\Notification\NotificationChannel;
+use App\Enums\Notification\NotificationStatus;
+use App\Enums\Notification\NotificationType;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -40,6 +43,9 @@ final class Notification extends Model
         'next_retry_at' => 'datetime',
         'retry_count' => 'integer',
         'max_retries' => 'integer',
+        'type' => NotificationType::class,
+        'channel' => NotificationChannel::class,
+        'status' => NotificationStatus::class,
     ];
 
     public function user(): BelongsTo
@@ -69,12 +75,12 @@ final class Notification extends Model
 
     public function canRetry(): bool
     {
-        return $this->status === 'failed' && $this->retry_count < $this->max_retries;
+        return $this->status === NotificationStatus::FAILED && $this->retry_count < $this->max_retries;
     }
 
     public function markAsSending(): void
     {
-        $this->update(['status' => 'sending']);
+        $this->update(['status' => NotificationStatus::SENDING]);
     }
 
     public function markAsSent(): void

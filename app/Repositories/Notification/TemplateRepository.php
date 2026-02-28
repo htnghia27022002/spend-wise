@@ -5,31 +5,45 @@ declare(strict_types=1);
 namespace App\Repositories\Notification;
 
 use App\Models\Notification\NotificationTemplate;
+use App\Repositories\BaseRepository;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Model;
 
-final class TemplateRepository
+final class TemplateRepository extends BaseRepository
 {
-    public function findById(int $id): ?NotificationTemplate
+    public function __construct()
     {
-        return NotificationTemplate::find($id);
+        $this->model = new NotificationTemplate();
     }
 
+    /**
+     * Get all ordered
+     */
     public function getAll(): Collection
     {
         return NotificationTemplate::orderBy('type')->orderBy('channel')->get();
     }
 
+    /**
+     * Get paginated
+     */
     public function getPaginated(int $perPage = 20): LengthAwarePaginator
     {
         return NotificationTemplate::orderBy('type')->orderBy('channel')->paginate($perPage);
     }
 
+    /**
+     * Get by type
+     */
     public function getByType(string $type): Collection
     {
         return NotificationTemplate::where('type', $type)->get();
     }
 
+    /**
+     * Get by type and channel
+     */
     public function getByTypeAndChannel(string $type, string $channel): ?NotificationTemplate
     {
         return NotificationTemplate::where('type', $type)
@@ -39,6 +53,9 @@ final class TemplateRepository
             ->first();
     }
 
+    /**
+     * Get active templates
+     */
     public function getActive(): Collection
     {
         return NotificationTemplate::where('is_active', true)->get();

@@ -5,16 +5,21 @@ declare(strict_types=1);
 namespace App\Repositories\Notification;
 
 use App\Models\Notification\Notification;
+use App\Repositories\BaseRepository;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
-final class NotificationRepository
+final class NotificationRepository extends BaseRepository
 {
-    public function findById(int $id): ?Notification
+    public function __construct()
     {
-        return Notification::find($id);
+        $this->model = new Notification();
     }
 
+    /**
+     * Get paginated by user
+     */
     public function getPaginatedByUser(int $userId, int $perPage = 20, ?string $status = null): LengthAwarePaginator
     {
         $query = Notification::where('user_id', $userId);
@@ -26,6 +31,9 @@ final class NotificationRepository
         return $query->orderByDesc('created_at')->paginate($perPage);
     }
 
+    /**
+     * Get unread by user
+     */
     public function getUnreadByUser(int $userId): Collection
     {
         return Notification::where('user_id', $userId)
@@ -34,6 +42,9 @@ final class NotificationRepository
             ->get();
     }
 
+    /**
+     * Get by user and type
+     */
     public function getByUserAndType(int $userId, string $type): Collection
     {
         return Notification::where('user_id', $userId)
@@ -42,6 +53,9 @@ final class NotificationRepository
             ->get();
     }
 
+    /**
+     * Count unread by user
+     */
     public function countUnreadByUser(int $userId): int
     {
         return Notification::where('user_id', $userId)
@@ -49,6 +63,9 @@ final class NotificationRepository
             ->count();
     }
 
+    /**
+     * Get unsent notifications
+     */
     public function getUnsentNotifications(): Collection
     {
         return Notification::where('sent', false)
@@ -56,6 +73,9 @@ final class NotificationRepository
             ->get();
     }
 
+    /**
+     * Get by status
+     */
     public function getByStatus(string $status): Collection
     {
         return Notification::where('status', $status)
@@ -63,15 +83,21 @@ final class NotificationRepository
             ->get();
     }
 
+    /**
+     * Get failed notifications
+     */
     public function getFailedNotifications(): Collection
     {
         return Notification::where('status', 'failed')
-            ->where('retry_count', '<', \DB::raw('max_retries'))
+            ->where('retry_count', '<', DB::raw('max_retries'))
             ->whereNotNull('next_retry_at')
             ->where('next_retry_at', '<=', now())
             ->get();
     }
 
+    /**
+     * Get pending notifications
+     */
     public function getPendingNotifications(): Collection
     {
         return Notification::where('status', 'pending')

@@ -6,10 +6,20 @@ namespace App\Repositories\Calendar;
 
 use App\Contracts\Calendar\CalendarRepositoryInterface;
 use App\Models\Calendar\CalendarEvent;
-use Illuminate\Pagination\Paginator;
+use App\Repositories\BaseRepository;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Model;
 
-final class CalendarRepository implements CalendarRepositoryInterface
+final class CalendarRepository extends BaseRepository implements CalendarRepositoryInterface
 {
+    public function __construct()
+    {
+        $this->model = new CalendarEvent();
+    }
+
+    /**
+     * Get events by user and month
+     */
     public function getEventsByUserAndMonth(int $userId, string $month): array
     {
         $startDate = date('Y-m-01', strtotime($month));
@@ -18,6 +28,9 @@ final class CalendarRepository implements CalendarRepositoryInterface
         return $this->getEventsByUserAndDateRange($userId, $startDate, $endDate);
     }
 
+    /**
+     * Get events by user and date range
+     */
     public function getEventsByUserAndDateRange(int $userId, string $startDate, string $endDate): array
     {
         return CalendarEvent::where('user_id', $userId)
@@ -29,11 +42,9 @@ final class CalendarRepository implements CalendarRepositoryInterface
             ->toArray();
     }
 
-    public function findById(int $id): ?CalendarEvent
-    {
-        return CalendarEvent::find($id);
-    }
-
+    /**
+     * Find by ID and user
+     */
     public function findByIdAndUser(int $id, int $userId): ?CalendarEvent
     {
         return CalendarEvent::where('id', $id)
@@ -41,7 +52,10 @@ final class CalendarRepository implements CalendarRepositoryInterface
             ->first();
     }
 
-    public function getPaginatedByUser(int $userId, int $perPage = 20): Paginator
+    /**
+     * Get paginated by user
+     */
+    public function getPaginatedByUser(int $userId, int $perPage = 20): LengthAwarePaginator
     {
         return CalendarEvent::where('user_id', $userId)
             ->where('is_active', true)

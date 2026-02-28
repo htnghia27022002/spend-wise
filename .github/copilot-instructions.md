@@ -8,10 +8,15 @@ Organize code by feature within Laravel's standard folders:
 ```
 app/
 ├── Models/[Feature]/          # Eloquent models grouped by feature
-├── Http/Controllers/[Feature]/ # Controllers grouped by feature
+├── Http/
+│   ├── Controllers/[Feature]/ # Controllers grouped by feature
+│   └── Resources/[Feature]/   # API Resources for JSON responses
 ├── Services/[Feature]/        # Business logic services
-├── Repositories/[Feature]/    # Query-only repositories
+├── Repositories/              # Query-only repositories
+│   ├── BaseRepository.php     # Base repository with CRUD methods
+│   └── [Feature]/             # Feature-specific repositories
 ├── Contracts/[Feature]/       # Interfaces for dependency injection
+├── Enums/[Feature]/           # Enum classes for type safety
 ├── Events/[Feature]/          # Domain events
 ├── Jobs/[Feature]/            # Background jobs
 ├── Strategies/[Feature]/      # Strategy pattern implementations
@@ -20,25 +25,76 @@ app/
 ```
 
 ### Current Features
-- **Webhook**: Webhook testing and replay system
+- **Calendar**: Calendar events and reminders management
+- **Notification**: Multi-channel notification system with templates
+- **Tools**: Utility tools (encoder/decoder, etc.)
 
 ### Namespace Convention
 Follow PSR-4 autoloading with feature grouping:
-- `App\Models\Webhook\WebhookEndpoint`
-- `App\Http\Controllers\Webhook\WebhookEndpointController`
-- `App\Services\Webhook\WebhookEndpointService`
-- `App\Repositories\Webhook\WebhookEndpointRepository`
-- `App\Contracts\Webhook\WebhookLoggerInterface`
+- `App\Models\Calendar\CalendarEvent`
+- `App\Http\Controllers\Calendar\CalendarController`
+- `App\Http\Resources\Calendar\CalendarEventResource`
+- `App\Services\Calendar\CalendarService`
+- `App\Repositories\Calendar\CalendarRepository`
+- `App\Contracts\Calendar\CalendarServiceInterface`
+- `App\Enums\Calendar\EventType`
 
 ## Architecture Patterns
 
 ### Repository Pattern (Query Only)
-Repositories MUST only contain read operations:
+
+**ALL Repositories MUST extend `BaseRepository`:**
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Repositories\Calendar;
+
+use App\Models\Calendar\CalendarEvent;
+use App\Repositories\BaseRepository;
+
+final class CalendarRepository extends BaseRepository
+{
+    public function __construct()
+    {
+        $this->model = new CalendarEvent();
+    }
+
+    // Custom query methods only
+    public function getEventsByUserAndMonth(int $userId, string $month): array
+    {
+        // Custom query logic
+    }
+}
+```
+
+**BaseRepository provides:**
+- `findById(int $id): ?Model`
+- `findByIdOrFail(int $id): Model`
+- `findBy(string $column, mixed $value): ?Model`
+- `getAll(): Collection`
+- `getAllWith(array $relations): Collection`
+- `paginate(int $perPage = 15): LengthAwarePaginator`
+- `paginateWith(array $relations, int $perPage = 15): LengthAwarePaginator`
+- `count(): int`
+- `countBy(string $column, mixed $value): int`
+- `exists(int $id): bool`
+- `existsBy(string $column, mixed $value): bool`
+- `getWhere(string $column, mixed $value): Collection`
+- `getWhereWith(string $column, mixed $value, array $relations): Collection`
+- `firstWhere(string $column, mixed $value): ?Model`
+- `getOrderedBy(string $column, string $direction = 'asc'): Collection`
+- `getLatest(int $limit = 10): Collection`
+
+**Repositories MUST only contain read operations:**
 ```php
 // ✅ CORRECT
-public function findByUuid(string $uuid): ?WebhookEndpoint;
+public function findByUuid(string $uuid): ?Model;
 public function getAllActive(): Collection;
-public function getPaginatedByEndpoint(int $endpointId, int $perPage = 50);
+public function getPaginatedByUser(int $userId, int $perPage = 15): LengthAwarePaginator;
+public function getEventsByUserAndMonth(int $userId, string $month): array;
 
 // ❌ WRONG - No write operations in repositories
 public function create(array $data);
@@ -47,33 +103,292 @@ public function delete(Model $model);
 ```
 
 ### Service Pattern (Business Logic + Writes)
-Services contain all business logic and write operations:
+
+Services contain all business logic and write operations, delegating queries to repositories:
+
 ```php
-// ✅ CORRECT - Services handle creates, updates, deletes
-public function createEndpoint(array $data): WebhookEndpoint;
-public function updateEndpoint(WebhookEndpoint $endpoint, array $data): WebhookEndpoint;
-public function deleteEndpoint(WebhookEndpoint $endpoint): bool;
-public function logRequest(WebhookEndpoint $endpoint, Request $request): WebhookRequest;
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Calendar;
+
+use App\Contracts\Calendar\CalendarRepositoryInterface;
+use App\Contracts\Calendar\CalendarServiceInterface;
+use App\Models\Calendar\CalendarEvent;
+
+final class CalendarService implements CalendarServiceInterface
+{
+    public function __construct(
+        private readonly CalendarRepositoryInterface $repository,
+    ) {}
+
+    // ✅ CORRECT - Services handle creates, updates, deletes
+    public function createEvent(int $userId, array $data): CalendarEvent
+    {
+        $data['user_id'] = $userId;
+        return CalendarEvent::create($data);
+    }
+
+    public function updateEvent(CalendarEvent $event, array $data): CalendarEvent
+    {
+        $event->update($data);
+        return $event->fresh();
+    }
+
+    public function deleteEvent(CalendarEvent $event): bool
+    {
+        return (bool) $event->delete();
+    }
+
+    // ✅ CORRECT - Services delegate reads to repository
+    public function getEventsByMonth(int $userId, string $month): array
+    {
+        return $this->repository->getEventsByUserAndMonth($userId, $month);
+    }
+}
 ```
 
 ### Controller Pattern (Thin HTTP Layer)
-Controllers MUST remain thin - only handle HTTP concerns:
+
+Controllers MUST remain thin - handle HTTP concerns only, use API Resources for responses:
+
 ```php
-// ✅ CORRECT - Delegate to services
-public function store(Request $request)
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Calendar;
+
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Calendar\CalendarEventResource;
+use App\Contracts\Calendar\CalendarRepositoryInterface;
+use App\Contracts\Calendar\CalendarServiceInterface;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+final class CalendarController extends Controller
 {
-    $validated = $request->validate([...]);
-    $endpoint = $this->endpointService->createEndpoint($validated);
-    return response()->json($endpoint, 201);
+    public function __construct(
+        private readonly CalendarRepositoryInterface $repository,
+        private readonly CalendarServiceInterface $service,
+    ) {}
+
+    // ✅ CORRECT - Use Resources for API responses
+    public function index(Request $request): JsonResponse
+    {
+        $events = $this->repository->getPaginatedByUser(
+            auth()->id(),
+            $request->integer('per_page', 15)
+        );
+
+        return CalendarEventResource::collection($events)
+            ->response();
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([...]);
+        $event = $this->service->createEvent(auth()->id(), $validated);
+
+        return CalendarEventResource::make($event)
+            ->response()
+            ->setStatusCode(201);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $event = $this->repository->findByIdAndUser($id, auth()->id());
+
+        if (!$event) {
+            abort(404);
+        }
+
+        return CalendarEventResource::make($event->load('reminders'))
+            ->response();
+    }
+}
+```
+
+### API Resources Pattern
+
+**ALWAYS use API Resources for API responses** - never return raw models or arrays:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Resources\Calendar;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class CalendarEventResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'description' => $this->description,
+            'start_date' => $this->start_date?->toISOString(),
+            'end_date' => $this->end_date?->toISOString(),
+            'type' => $this->type,  // Enum will be serialized automatically
+            'color' => $this->color,
+            'is_all_day' => $this->is_all_day,
+            'reminders' => CalendarReminderResource::collection($this->whenLoaded('reminders')),
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
+        ];
+    }
+}
+```
+
+**Using Resources in Controllers:**
+```php
+// Single resource
+return CalendarEventResource::make($event)->response();
+
+// Collection
+return CalendarEventResource::collection($events)->response();
+
+// Paginated collection (automatic pagination links)
+return CalendarEventResource::collection($paginatedEvents)->response();
+
+// With metadata
+return CalendarEventResource::collection($events)
+    ->additional(['meta' => ['total' => $events->count()]])
+    ->response();
+```
+
+### Enum Pattern
+
+**MUST use PHP 8.1+ Enums for fixed values** - provides type safety and IDE autocomplete:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Enums\Calendar;
+
+enum EventType: string
+{
+    case CUSTOM = 'custom';
+    case REMINDER = 'reminder';
+    case PAYMENT_DUE = 'payment_due';
+
+    /**
+     * Get all values
+     */
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
+
+    /**
+     * Get label for display
+     */
+    public function label(): string
+    {
+        return match ($this) {
+            self::CUSTOM => 'Custom Event',
+            self::REMINDER => 'Reminder',
+            self::PAYMENT_DUE => 'Payment Due',
+        };
+    }
+}
+```
+
+**Using Enums in Models:**
+```php
+final class CalendarEvent extends Model
+{
+    protected $casts = [
+        'type' => EventType::class,      // Auto-cast to Enum
+        'color' => EventColor::class,
+        'status' => EventStatus::class,
+    ];
+}
+```
+
+**Using Enums in Validation:**
+```php
+use App\Enums\Calendar\EventType;
+
+$request->validate([
+    'type' => ['required', 'string', 'in:' . implode(',', EventType::values())],
+]);
+
+// Or using Rule
+use Illuminate\Validation\Rule;
+
+$request->validate([
+    'type' => ['required', Rule::enum(EventType::class)],
+]);
+```
+
+**Using Enums in Code:**
+```php
+// Comparison
+if ($event->type === EventType::CUSTOM) {
+    // ...
 }
 
-// ❌ WRONG - No business logic in controllers
-public function store(Request $request)
+// Get label
+$label = $event->type->label();
+
+// Get all values
+$allTypes = EventType::values();
+```
+
+## Pagination
+
+**MUST use Laravel's built-in pagination:**
+
+```php
+// In Repository
+public function getPaginatedByUser(int $userId, int $perPage = 15): LengthAwarePaginator
 {
-    $endpoint = new WebhookEndpoint();
-    $endpoint->name = $request->name;
-    $endpoint->uuid = Str::uuid();
-    // ... more logic
+    return CalendarEvent::where('user_id', $userId)
+        ->orderBy('created_at', 'desc')
+        ->with('reminders')
+        ->paginate($perPage);
+}
+
+// In Controller
+public function index(Request $request): JsonResponse
+{
+    $perPage = $request->integer('per_page', 15);  // Default 15
+    $events = $this->repository->getPaginatedByUser(auth()->id(), $perPage);
+
+    // Resource automatically handles pagination metadata
+    return CalendarEventResource::collection($events)->response();
+}
+```
+
+**Pagination Response Format (automatic):**
+```json
+{
+    "data": [...],
+    "links": {
+        "first": "http://example.com/api/events?page=1",
+        "last": "http://example.com/api/events?page=10",
+        "prev": null,
+        "next": "http://example.com/api/events?page=2"
+    },
+    "meta": {
+        "current_page": 1,
+        "from": 1,
+        "last_page": 10,
+        "per_page": 15,
+        "to": 15,
+        "total": 150
+    }
 }
 ```
 
@@ -83,68 +398,119 @@ public function store(Request $request)
 Always use constructor injection with interfaces:
 ```php
 public function __construct(
-    private WebhookLoggerInterface $logger,
-    private WebhookReplayerInterface $replayer
+    private readonly CalendarRepositoryInterface $repository,
+    private readonly CalendarServiceInterface $service,
 ) {}
 ```
 
 ### Interface Segregation
 Create focused interfaces in `Contracts/[Feature]/`:
-- `WebhookLoggerInterface` - logging concerns
-- `WebhookReplayerInterface` - replay concerns
-- `HttpClientInterface` - HTTP client abstraction
-- `ReplayStrategyInterface` - replay strategies
+- `CalendarRepositoryInterface` - query methods
+- `CalendarServiceInterface` - business logic methods
+- `NotificationServiceInterface` - notification operations
 
 ### Single Responsibility
-- Models: Data representation + relationships only
-- Controllers: HTTP request/response handling
-- Services: Business logic + orchestration
-- Repositories: Database queries
-- Jobs: Background task execution
-- Events: Domain event broadcasting
+- **Models**: Data representation + relationships + casts only
+- **Controllers**: HTTP request/response handling only
+- **Services**: Business logic + orchestration + writes
+- **Repositories**: Database queries (reads only)
+- **Resources**: JSON transformation for APIs
+- **Enums**: Fixed value sets with helper methods
+- **Jobs**: Background task execution
+- **Events**: Domain event broadcasting
 
 ## Naming Conventions
 
 ### Files
-- Models: `{Entity}.php` (e.g., `WebhookEndpoint.php`)
-- Controllers: `{Entity}Controller.php` (e.g., `WebhookEndpointController.php`)
-- Services: `{Entity}Service.php` (e.g., `WebhookEndpointService.php`)
-- Repositories: `{Entity}Repository.php` (e.g., `WebhookEndpointRepository.php`)
-- Interfaces: `{Purpose}Interface.php` (e.g., `WebhookLoggerInterface.php`)
-- Events: `{Action}Event.php` (e.g., `WebhookReceivedEvent.php`)
-- Jobs: `{Action}Job.php` (e.g., `ProcessWebhookReplayJob.php`)
+- **Models**: `{Entity}.php` (e.g., `CalendarEvent.php`)
+- **Controllers**: `{Entity}Controller.php` (e.g., `CalendarController.php`)
+- **Services**: `{Entity}Service.php` (e.g., `CalendarService.php`)
+- **Repositories**: `{Entity}Repository.php` (e.g., `CalendarRepository.php`)
+- **Resources**: `{Entity}Resource.php` (e.g., `CalendarEventResource.php`)
+- **Enums**: `{Name}.php` (e.g., `EventType.php`, `NotificationStatus.php`)
+- **Interfaces**: `{Purpose}Interface.php` (e.g., `CalendarServiceInterface.php`)
+- **Events**: `{Action}Event.php` (e.g., `EventCreated.php`)
+- **Jobs**: `{Action}Job.php` (e.g., `SendReminderJob.php`)
 
 ### Methods
-- Repository queries: `find*`, `get*`, `count*`, `exists*`
-- Service writes: `create*`, `update*`, `delete*`, `process*`
-- Service reads: delegate to repository
-- Controllers: `index`, `store`, `show`, `update`, `destroy`
+- **Repository queries**: `find*`, `get*`, `count*`, `exists*`, `paginate*`
+- **Service writes**: `create*`, `update*`, `delete*`, `process*`
+- **Service reads**: delegate to repository methods
+- **Controllers**: `index`, `store`, `show`, `update`, `destroy`
+- **Resource transformation**: `toArray(Request $request): array`
 
 ## Database Conventions
 
 ### Migrations
-- Prefix with date: `2026_01_10_100000_create_webhook_endpoints_table.php`
+- Prefix with date: `2026_01_10_100000_create_calendar_events_table.php`
 - Use descriptive names
 - Add indexes for foreign keys and frequently queried columns
+- Use proper column types matching Enum backing values
 
 ### Models
+
+**MUST specify fillable, casts, and relationships:**
+
 ```php
-// Always specify fillable or guarded
-protected $fillable = ['name', 'url', 'secret'];
+<?php
 
-// Use casting for JSON and dates
-protected $casts = [
-    'headers' => 'array',
-    'expires_at' => 'datetime',
-    'is_active' => 'boolean',
-];
+declare(strict_types=1);
 
-// Define relationships
-public function requests(): HasMany
+namespace App\Models\Calendar;
+
+use App\Enums\Calendar\EventType;
+use App\Enums\Calendar\EventColor;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+final class CalendarEvent extends Model
 {
-    return $this->hasMany(WebhookRequest::class, 'endpoint_id');
+    // Always specify fillable
+    protected $fillable = [
+        'user_id',
+        'title',
+        'type',
+        'color',
+        'start_date',
+        'end_date',
+        'is_all_day',
+        'metadata',
+    ];
+
+    // Use casting for proper types - use Enums where applicable
+    protected $casts = [
+        'type' => EventType::class,           // Enum casting
+        'color' => EventColor::class,         // Enum casting
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+        'is_all_day' => 'boolean',
+        'metadata' => 'array',
+    ];
+
+    // Define relationships
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function reminders(): HasMany
+    {
+        return $this->hasMany(CalendarReminder::class);
+    }
 }
 ```
+
+**Model Best Practices:**
+- Use `final` keyword unless designed for extension
+- Use typed properties where beneficial (PHP 8+)
+- Use Enums for status, type, and other fixed value fields
+- Cast dates to `datetime` for proper Carbon instances
+- Cast booleans explicitly
+- Cast JSON fields to `array`
+- Define all relationships explicitly
+- Use `BelongsTo`, `HasMany`, `HasOne`, `MorphTo`, etc. return types
 
 ## Code Quality Rules
 
@@ -153,7 +519,12 @@ Always use strict types and return type declarations:
 ```php
 declare(strict_types=1);
 
-public function createEndpoint(array $data): WebhookEndpoint
+public function createEvent(int $userId, array $data): CalendarEvent
+{
+    // ...
+}
+
+public function getPaginatedByUser(int $userId, int $perPage = 15): LengthAwarePaginator
 {
     // ...
 }
@@ -163,16 +534,31 @@ public function createEndpoint(array $data): WebhookEndpoint
 - Validate in controllers using FormRequest or inline validation
 - Never trust user input
 - Use Laravel's validation rules
+- Use Enum validation with `Rule::enum()`
+- Always validate pagination parameters
+
+```php
+$request->validate([
+    'title' => 'required|string|max:255',
+    'type' => ['required', Rule::enum(EventType::class)],
+    'color' => ['required', Rule::enum(EventColor::class)],
+    'per_page' => 'nullable|integer|min:1|max:100',
+]);
+```
 
 ### Error Handling
 - Throw specific exceptions
-- Use try-catch in controllers
+- Use try-catch in controllers when needed
 - Return appropriate HTTP status codes
+- Use proper error messages
+- Return errors in consistent format via API Resources
 
 ### Testing
 - Write tests in `tests/Feature/` and `tests/Unit/`
 - Follow AAA pattern: Arrange, Act, Assert
 - Mock external dependencies
+- Test with various Enum values
+- Test pagination edge cases
 
 ## When Adding New Features or Refactoring
 
@@ -188,29 +574,36 @@ Before starting any feature development or refactoring, **MUST** review the spec
    - Does it follow the repository/service/controller pattern?
    - Are there any existing patterns to follow?
    - Is the feature-based organization appropriate?
+   - What Enums are needed?
+   - What API Resources are needed?
 
 3. **Check Existing Code**
    - Are there similar features already implemented?
    - Can we reuse existing utilities, hooks, or components?
    - Should this be shared or feature-specific?
+   - Review existing Enums that might be reusable
 
 4. **Plan File Structure**
    - Create all necessary folders in advance
    - Map out which interfaces/contracts are needed
    - Identify shared vs feature-specific code
+   - Plan Enum structure
+   - Plan API Resource structure
 
 ### Implementation Steps
 
-1. **Create folder structure**: `app/Models/[Feature]/`, `app/Services/[Feature]/`, etc.
-2. **Define contracts**: Create interfaces in `app/Contracts/[Feature]/`
-3. **Implement models**: Add to `app/Models/[Feature]/`
-4. **Create repositories**: Query-only in `app/Repositories/[Feature]/`
-5. **Create services**: Business logic in `app/Services/[Feature]/`
-6. **Add controllers**: Thin HTTP layer in `app/Http/Controllers/[Feature]/`
-7. **Register bindings**: Update service provider
-8. **Define routes**: Add to `routes/api.php` or `routes/web.php`
-9. **Create migrations**: Database schema changes
-10. **Write tests**: Feature and unit tests
+1. **Create Enums**: Define in `app/Enums/[Feature]/`
+2. **Create folder structure**: `app/Models/[Feature]/`, `app/Services/[Feature]/`, etc.
+3. **Define contracts**: Create interfaces in `app/Contracts/[Feature]/`
+4. **Implement models**: Add to `app/Models/[Feature]/` with Enum casts
+5. **Create repositories**: Extend BaseRepository in `app/Repositories/[Feature]/`
+6. **Create services**: Business logic in `app/Services/[Feature]/` using repositories
+7. **Create API Resources**: JSON transformations in `app/Http/Resources/[Feature]/`
+8. **Add controllers**: Thin HTTP layer in `app/Http/Controllers/[Feature]/` using Resources
+9. **Register bindings**: Update service provider with interface bindings
+10. **Define routes**: Add to `routes/api.php` or `routes/web.php`
+11. **Create migrations**: Database schema changes with proper Enum column types
+12. **Write tests**: Feature and unit tests covering Enums and Resources
 
 ## Frontend (React + Inertia.js)
 

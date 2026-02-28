@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models\Calendar;
 
+use App\Enums\Calendar\EventColor;
+use App\Enums\Calendar\EventType;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -30,11 +33,13 @@ final class CalendarEvent extends Model
         'is_all_day' => 'boolean',
         'is_active' => 'boolean',
         'metadata' => 'array',
+        'type' => EventType::class,
+        'color' => EventColor::class,
     ];
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class);
+        return $this->belongsTo(User::class);
     }
 
     public function reminders(): HasMany
