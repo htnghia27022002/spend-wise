@@ -4,9 +4,15 @@ namespace App\Providers;
 
 use App\Contracts\Calendar\CalendarRepositoryInterface;
 use App\Contracts\Calendar\CalendarServiceInterface;
+use App\Contracts\Email\EmailProviderRepositoryInterface;
+use App\Contracts\Email\EmailServiceInterface;
+use App\Contracts\Email\EmailTemplateRepositoryInterface;
 use App\Contracts\Notification\NotificationServiceInterface;
 use App\Repositories\Calendar\CalendarRepository;
+use App\Repositories\Email\EmailProviderRepository;
+use App\Repositories\Email\EmailTemplateRepository;
 use App\Services\Calendar\CalendarService;
+use App\Services\Email\EmailService;
 use App\Services\Notification\NotificationService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -21,8 +27,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Calendar bindings
         $this->app->bind(CalendarRepositoryInterface::class, CalendarRepository::class);
         $this->app->bind(CalendarServiceInterface::class, CalendarService::class);
+
+        // Email bindings
+        $this->app->bind(EmailProviderRepositoryInterface::class, EmailProviderRepository::class);
+        $this->app->bind(EmailTemplateRepositoryInterface::class, EmailTemplateRepository::class);
+        $this->app->bind(EmailServiceInterface::class, EmailService::class);
+
+        // Notification bindings
         $this->app->bind(NotificationServiceInterface::class, NotificationService::class);
     }
 

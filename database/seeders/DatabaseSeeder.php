@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
         // Seed calendar events
         $this->call([
             CalendarEventSeeder::class,
+            EmailProviderSeeder::class,
+            EmailTemplateSeeder::class,
         ]);
 
         $this->command->info('✅ Database seeded successfully!');

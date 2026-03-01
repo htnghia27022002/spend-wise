@@ -65,6 +65,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('notifications/templates/{id}', [\App\Http\Controllers\Notification\TemplateController::class, 'update'])->name('notifications.templates.update');
     Route::delete('notifications/templates/{id}', [\App\Http\Controllers\Notification\TemplateController::class, 'destroy'])->name('notifications.templates.destroy');
     Route::post('notifications/templates/{id}/preview', [\App\Http\Controllers\Notification\TemplateController::class, 'preview'])->name('notifications.templates.preview');
+
+    // Email Providers
+    Route::get('email/providers', [\App\Http\Controllers\Email\EmailProviderController::class, 'index'])->name('email.providers.index');
+    Route::post('email/providers', [\App\Http\Controllers\Email\EmailProviderController::class, 'store'])->name('email.providers.store');
+    Route::put('email/providers/{id}', [\App\Http\Controllers\Email\EmailProviderController::class, 'update'])->name('email.providers.update');
+    Route::delete('email/providers/{id}', [\App\Http\Controllers\Email\EmailProviderController::class, 'destroy'])->name('email.providers.destroy');
+    Route::post('email/providers/{id}/set-default', [\App\Http\Controllers\Email\EmailProviderController::class, 'setDefault'])->name('email.providers.setDefault');
+    Route::post('email/providers/{id}/test', [\App\Http\Controllers\Email\EmailProviderController::class, 'test'])->name('email.providers.test');
+
+    // Email Templates
+    Route::get('email/templates', [\App\Http\Controllers\Email\EmailTemplateController::class, 'index'])->name('email.templates.index');
+    Route::get('email/templates/create', [\App\Http\Controllers\Email\EmailTemplateController::class, 'create'])->name('email.templates.create');
+    Route::post('email/templates', [\App\Http\Controllers\Email\EmailTemplateController::class, 'store'])->name('email.templates.store');
+    Route::get('email/templates/{id}/edit', [\App\Http\Controllers\Email\EmailTemplateController::class, 'edit'])->name('email.templates.edit');
+    Route::put('email/templates/{id}', [\App\Http\Controllers\Email\EmailTemplateController::class, 'update'])->name('email.templates.update');
+    Route::delete('email/templates/{id}', [\App\Http\Controllers\Email\EmailTemplateController::class, 'destroy'])->name('email.templates.destroy');
+    Route::post('email/templates/{id}/preview', [\App\Http\Controllers\Email\EmailTemplateController::class, 'preview'])->name('email.templates.preview');
 });
 
 require __DIR__.'/settings.php';

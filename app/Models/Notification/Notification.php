@@ -6,7 +6,6 @@ namespace App\Models\Notification;
 
 use App\Enums\Notification\NotificationChannel;
 use App\Enums\Notification\NotificationStatus;
-use App\Enums\Notification\NotificationType;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -43,7 +42,7 @@ final class Notification extends Model
         'next_retry_at' => 'datetime',
         'retry_count' => 'integer',
         'max_retries' => 'integer',
-        'type' => NotificationType::class,
+        // Note: 'type' is string to support dynamic types via NotificationTypeRegistry
         'channel' => NotificationChannel::class,
         'status' => NotificationStatus::class,
     ];

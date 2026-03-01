@@ -5,7 +5,8 @@ import {
     LayoutGrid, 
     Wrench,
     Bell,
-    Calendar
+    Calendar,
+    Mail
 } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -33,6 +34,20 @@ const mainNavItems: NavItem[] = [
         title: 'Calendar',
         href: '/calendar',
         icon: Calendar,
+    },
+    {
+        title: 'Email',
+        icon: Mail,
+        items: [
+            {
+                title: 'Providers',
+                href: '/email/providers',
+            },
+            {
+                title: 'Templates',
+                href: '/email/templates',
+            },
+        ],
     },
     {
         title: 'Notifications',

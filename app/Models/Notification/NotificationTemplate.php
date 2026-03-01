@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Notification;
 
 use App\Enums\Notification\NotificationChannel;
-use App\Enums\Notification\NotificationType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -26,7 +25,7 @@ final class NotificationTemplate extends Model
         'variables' => 'array',
         'is_active' => 'boolean',
         'is_default' => 'boolean',
-        'type' => NotificationType::class,
+        // Note: 'type' is string to support dynamic types via NotificationTypeRegistry
         'channel' => NotificationChannel::class,
     ];
 

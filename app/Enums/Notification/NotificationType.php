@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace App\Enums\Notification;
 
+/**
+ * Predefined System Notification Types
+ * 
+ * Note: Notification types are extensible via NotificationTypeRegistry.
+ * These are just system defaults. Modules can register additional types.
+ */
 enum NotificationType: string
 {
-    case SUBSCRIPTION_DUE = 'subscription_due';
-    case SUBSCRIPTION_OVERDUE = 'subscription_overdue';
-    case INSTALLMENT_DUE = 'installment_due';
-    case INSTALLMENT_OVERDUE = 'installment_overdue';
+    case SYSTEM_MAINTENANCE = 'system.maintenance';
+    case SYSTEM_SECURITY_ALERT = 'system.security_alert';
+    case USER_WELCOME = 'user.welcome';
+    case CALENDAR_EVENT_REMINDER = 'calendar.event_reminder';
 
     /**
      * Get all values
@@ -25,10 +31,18 @@ enum NotificationType: string
     public function label(): string
     {
         return match ($this) {
-            self::SUBSCRIPTION_DUE => 'Subscription Due',
-            self::SUBSCRIPTION_OVERDUE => 'Subscription Overdue',
-            self::INSTALLMENT_DUE => 'Installment Due',
-            self::INSTALLMENT_OVERDUE => 'Installment Overdue',
+            self::SYSTEM_MAINTENANCE => 'System Maintenance',
+            self::SYSTEM_SECURITY_ALERT => 'Security Alert',
+            self::USER_WELCOME => 'Welcome Message',
+            self::CALENDAR_EVENT_REMINDER => 'Calendar Event Reminder',
         };
+    }
+
+    /**
+     * Get module name from type
+     */
+    public function module(): string
+    {
+        return explode('.', $this->value)[0];
     }
 }
