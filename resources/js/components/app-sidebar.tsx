@@ -79,6 +79,10 @@ const mainNavItems: NavItem[] = [
                 title: 'Encoder/Decoder',
                 href: '/tools/encoder-decoder',
             },
+            {
+                title: 'JSON Tools',
+                href: '/tools/json',
+            },
         ],
     },
 ];

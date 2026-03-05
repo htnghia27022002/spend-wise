@@ -13,6 +13,10 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+// ===== JSON Tools (Public - No Auth) =====
+Route::get('tools/json', [\App\Http\Controllers\Tools\JsonToolsController::class, 'show'])
+    ->name('tools.json.show');
+
 // ===== Webhook Testing (Public - No Auth) =====
 Route::get('webhooks', [WebhookController::class, 'index'])->name('webhooks.index');
 Route::post('webhooks/endpoints', [WebhookController::class, 'createOrGet'])->name('webhooks.endpoints.createOrGet');
