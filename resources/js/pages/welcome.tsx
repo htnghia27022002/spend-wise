@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import {
     ArrowRightIcon,
+    BracesIcon,
     CodeIcon,
     GlobeIcon,
     BellIcon,
@@ -47,6 +48,16 @@ const TOOLS = [
         badgeClass: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
         available: true,
         requiresAuth: true,
+    },
+    {
+        icon: BracesIcon,
+        name: 'JSON Tools',
+        description: 'Format, minify, validate and decode JSON. Explore nested structures in an interactive tree view — no account needed.',
+        href: '/tools/json',
+        badge: 'Free',
+        badgeClass: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+        available: true,
+        requiresAuth: false,
     },
     {
         icon: CalendarIcon,
